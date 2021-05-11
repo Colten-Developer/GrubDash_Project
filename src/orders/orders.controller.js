@@ -42,11 +42,7 @@ function hasMobileNumber(req, res, next) {
 function hasDishes(req, res, next) {
     const { data: { dishes } = {} } = req.body
 	
-	if(!dishes){
-		return next({ status: 400, message: `Order must include a dish ${dishes}`})
-	}
-	
-	if(!Array.isArray(dishes) && !dishes.length >0) {
+	if(dishes && Array.isArray(dishes) && dishes.length >0) {
 		return next()
 	}
 	
@@ -71,13 +67,17 @@ function hasDishes(req, res, next) {
 }
 
 function dishQuantityProperty(req, res, next) {
+	
 	const { data: { dishes } = {} } = req.body
-	dishes.forEach((dish) => {
-		if(!dish || !dish.quantity || dish.quantity || typeof dish.quantity !== 'number') {
-			return next({ status: 400, message: `dish must have quantity`})
+	dishes.forEach((dish, index) => {
+		console.log(dish , index)
+		
+		if(!dish.quantity || dish.quantity === 0 || typeof dish.quantity !== 'number') {
+			return next({ status: 400, message: `Dish ${index} must have a quantity that is an integer greater than 0`})
 		}
-		return next()
 	})
+	
+	return next()
 }
 
 function hasStatus(req, res, next) {
@@ -95,7 +95,8 @@ function read(request, response) {
 
 function create(request, response) {
     const orderBody = request.body.data;
-    const newOrder = { id: nextId, orderBody };
+	console.log(orderBody)
+    const newOrder = { id: nextId(), deliverTo: orderBody.deliverTo, mobileNumber: orderBody.mobileNumber, status: orderBody.status, dishes: orderBody.dishes };
     orders.push(newOrder);
     response.status(201).json({ data: newOrder });
   }
@@ -142,7 +143,7 @@ function destroy(request, response, next) {
   
 module.exports = {
     read: [orderExists, read],
-    update: [orderExists, hasDeliverTo, hasMobileNumber, hasStatus, update],
+    update: [orderExists, hasDeliverTo, hasMobileNumber, hasDishes, dishQuantityProperty, hasStatus, update],
     destroy: [orderExists, destroy],
     create: [hasDeliverTo, hasMobileNumber, hasDishes, dishQuantityProperty, create],
     list,

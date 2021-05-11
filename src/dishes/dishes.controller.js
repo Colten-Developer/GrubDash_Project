@@ -53,7 +53,7 @@ function hasProperPrice(req, res, next) {
         next({ status: 400, message: 'Dish must include a price' })
     }else if(price <= 0) {
         next({ status: 400, message: 'Dish must have a price that is an integer greater than 0' })
-    }else if (isNaN(price)){
+    }else if (typeof price != 'number') {
         next({ status: 400, message: 'Dish must have a price that is an integer greater than 0' })
     }else {
         next()
@@ -66,7 +66,9 @@ function read(request, response) {
 
 function create(request, response) {
     const dishBody = request.body.data;
-    const newDish = { id: nextId, dishBody };
+	console.log(dishBody)
+    const newDish = { id: nextId(), name: dishBody.name, description: dishBody.description, image_url: dishBody.image_url, price: dishBody.price };
+	console.log(newDish)
     dishes.push(newDish);
     response.status(201).json({ data: newDish });
   }
